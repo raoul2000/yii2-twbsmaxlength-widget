@@ -7,35 +7,54 @@ use yii\base\InvalidConfigException;
 use yii\helpers\Html;
 use yii\helpers\Json;
 use yii\web\JsExpression;
+use yii\widgets\InputWidget;
 
 /**
  * TwbsMaxlength is a wrapper for the [Bootstrap Maxlength](http://mimo84.github.io/bootstrap-maxlength/).
  *
  * @author Raoul
  */
-class TwbsMaxlength extends Widget
+class TwbsMaxlength extends InputWidget
 {
-
+	const INPUT_TEXT = 'text';
+	const INPUT_TEXTAREA = 'textarea';
+	
+	const TRESHOLD_HALF = 1;
+	const TRESHOLD_TWO_THIRD = 2;
+	const TRESHOLD_THREE_QUARTERS = 3;
+	
 	/**
-	 * @var string JQuery selector to attach the maxlength widget to.
+	 * @var string JQuery selector to attach the maxlength widget to. If this option is set, it is used 
+	 * in priority. It must be empty when the widget is used with ActiveField.
 	 */
-	public $selector;
-
+	public $selector;	
+    /**
+     * @var array the JQuery plugin options for the bootstrap-maxlength plugin.
+     * @see https://github.com/mimo84/bootstrap-maxlength/
+     */
+	public $clientOptions = [];
 	/**
-	 * @var array Bootstrap maxlength plugin options
+	 * @var string the type of input field to generate (default to 'text').
+	 */	
+	public $type = self::INPUT_TEXT;
+	/**
+	 * 
+	 * @var integer when attached to an ActiveField, use this property to calculate the treshold as a 
+	 * part of the max length value. This settings is used only if no treshold is set in the widget options. By default
+	 * the threshold is set to 2/3 of the maxlength value.
 	 */
-	public $pluginOptions = [];
-
+	public $thresholdPolicy = self::TRESHOLD_TWO_THIRD;
+	
 	/**
-	 * Checks that a value is provided for the "selector" attribute.
+	 * 
 	 * @see \yii\base\Object::init()
 	 */
 	public function init()
 	{
-		parent::init();
-		if (empty($this->selector)) {
-			throw new InvalidConfigException('The "selector" property must be set.');
+		if( isset($this->selector)) {
+			$this->name ='';
 		}
+		parent::init();
 	}
 
 	/**
@@ -43,9 +62,63 @@ class TwbsMaxlength extends Widget
 	 */
 	public function run()
 	{
-		$this->registerClientScript();
+		if( isset($this->selector)) {
+			$this->registerClientScript();
+		}else {
+			
+			$this->initClientOptions();
+			
+			if ($this->hasModel()) {
+				echo $this->type == self::INPUT_TEXTAREA ?
+					   Html::activeTextarea($this->model, $this->attribute, $this->options)
+					 : Html::activeTextInput($this->model, $this->attribute, $this->options);
+			} else {
+				echo $this->type == self::INPUT_TEXTAREA ?
+					  Html::textarea($this->name, $this->value, $this->options)
+					: Html::textInput($this->name, $this->value, $this->options);
+			}	
+			
+			if(  isset($this->options['maxlength']) && ! empty($this->options['maxlength'])) {
+				$this->registerClientScript();
+			}
+		}
 	}
-
+	
+    /**
+     * Initializes client options
+     */
+	protected function initClientOptions()
+	{
+		if(! isset($this->options['maxlength']) ){
+			if( $this->hasModel()) {
+				
+				$this->options['maxlength'] = self::getMaxLength($this->model, Html::getAttributeName($this->attribute));
+			}	
+		}
+		if( !isset($this->clientOptions['threshold']) && $this->options['maxlength'] != null) {
+			$this->initThreshold();
+		}
+	}
+	
+	/**
+	 * Initialize the threshold value for the maxlength plugin.
+	 * Depending on the *thresholdPolicy* option, the *maxlength* value will be divided to
+	 * get the actual value of the threshold that is used to initialize the plugin.
+	 */
+	protected function initThreshold()
+	{
+		switch ($this->thresholdPolicy) {
+			case self::TRESHOLD_HALF :
+				$this->clientOptions['threshold'] = ceil($this->options['maxlength'] / 2);
+				break;
+			case self::TRESHOLD_THREE_QUARTERS :
+				$this->clientOptions['threshold'] =  ceil($this->options['maxlength'] / 4);
+				break;
+			default:
+				$this->clientOptions['threshold'] = $this->options['maxlength'] - (ceil($this->options['maxlength'] / 3) * 2);
+				break;
+		}
+	}
 	/**
 	 * Generates and registers javascript to start the plugin.
 	 */
@@ -54,8 +127,12 @@ class TwbsMaxlength extends Widget
 		$view = $this->getView();
 		TwbsMaxlengthAsset::register($view);
 
-		$options = empty($this->pluginOptions) ? "{}" : Json::encode($this->pluginOptions);
-		$js = "jQuery(\"{$this->selector}\").maxlength(" . $options . ")";
+		$options = empty($this->clientOptions) ? "{}" : Json::encode($this->clientOptions);
+		if( isset($this->selector)) {
+			$js = "jQuery(\"{$this->selector}\").maxlength(" . $options . ")";
+		} else {
+			$js = "jQuery(\"#{$this->options['id']}\").maxlength(" . $options . ")";
+		}
 		$view->registerJs($js);
 	}
 
@@ -63,28 +140,28 @@ class TwbsMaxlength extends Widget
 	 * Add the maxlength attribute to an ActiveField.
 	 *
 	 * The plugin requires that the max number of characters is specified as the HTML5 attribute "maxlength". This
-	 * method adds this attribute if it is not already defined, into the HTML attributes of an ActiveField. The
-	 * value is retrieved from the StringValidator settings that could be attached to the model attribute.
-	 * Note that if maxlength can be defined, the plugin is not registred for the view.
+	 * method adds this attribute if it is not already defined into the HTML attributes of an ActiveField. The
+	 * value is retrieved from the StringValidator settings that is attached to the model attribute.
+	 * Note that if maxlength can't be defined, the plugin is not registred for the view.
 	 *
 	 * @param yii\widgets\ActiveField $field
-	 * @param array $pluginOptions Bootstrap maxlength plugin options
+	 * @param array $clientOptions Bootstrap maxlength plugin options
 	 * @param boolean $render when true, the $field is output
 	 * @return yii\widgets\ActiveField the field containing the "maxlength" option (if it could be obtained)
 	 */
-	public static function apply($field, $pluginOptions, $render = true)
+	public static function apply($field, $clientOptions, $render = true)
 	{
 		if ( isset($field->inputOptions['maxlength'])) {
 			$maxLength = $field->inputOptions['maxlength'];
 		} else {
-			$maxLength = static::getMaxLength($field->model, $field->attribute);
+			$maxLength = static::getMaxLength($field->model, Html::getAttributeName($field->attribute));
 		}
 		if ( ! empty($maxLength) ) {
 			$field->inputOptions['maxlength'] = $maxLength;
 			$id = Html::getInputId($field->model, $field->attribute);
 			static::widget( [
 				'selector' => '#'.$id,
-				'pluginOptions' => $pluginOptions
+				'clientOptions' => $clientOptions
 			]);
 		}
 		if ( $render ) {

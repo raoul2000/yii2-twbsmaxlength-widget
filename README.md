@@ -26,105 +26,122 @@ to the require section of your `composer.json` file.
 
 Basic Usage
 -----
-Using TwbsMaxlength widget is easy. In the example below, we attach it to an input text control, with a maximum length of 25 :
+Using TwbsMaxlength widget is easy. 
+In the example below, we attach it to an input text control, with a maximum length of 25 characters :
 
 ```php
-<?php
-use raoul2000\widget\twbsmaxlength\TwbsMaxlength;
-?>
-
 <input type="text" class="form-control" id="txtinput1" name="xyz" maxlength="25" ></textarea>
 
 <?php
-	TwbsMaxlength::widget([
-		'selector' => '#txtinput1',
-		'pluginOptions' => [
-			'threshold' => 10,
-			'placement' => 'top'
-		]
-	]);
+	raoul2000\widget\twbsmaxlength\TwbsMaxlength::widget(['selector' => '#txtinput1']);
 ?>
 ```
+The user will not be able to enter more than 25 characters in the text input control. By default
+after the 10th character is entered, a small alert will appear at the bottom of the control.
 
-You'll find the complete set of option availabe with the Plugin on the [demo page](http://mimo84.github.io/bootstrap-maxlength/)
+Check ouy the complete set of option availabe with the Plugin on the [demo page](http://mimo84.github.io/bootstrap-maxlength/)
 
-Advanced Usage
------
-
-Note that ...
+It is important to Note that ...
 
 > Bootstrap-Maxlength uses a Twitter Bootstrap label to show a visual feedback to the user about the maximum length of the field where the user is inserting text. Uses the HTML5 attribute "maxlength" to work.
 
-This is fine for something like the example above, but what if we are working with models and attributes to create our form ? 
-Do we have to add the *maxlength* HTML attribute manually on each input ? ...No worries, the *TwbsMaxlength* Widget is here to help ! 
+ActiveForm
+------
 
-**Using yii\helpers\HTML::activeInput**
+This is fine for something like the example above, but what if we are working with models and attributes to create our form ? Do we have to add the *maxlength* HTML attribute manually on each input ? ...No worries, the TwbsMaxlength Widget is here to help ! 
+
+Most of the time, Yii forms use models, and are created using the *ActiveForm*. Let's have a look to the example below where
+the *ContactForm* model is concerned (only the Subject attribute in this case).
 
 ```php
-<?php
+<?php 
+	$form = ActiveForm::begin(['id' => 'contact-form']); 
 
-	use raoul2000\widget\twbsmaxlength\TwbsMaxlength;
-	
-	// TwbsMaxlength helps you get the max character number 
-	// for your model's attribute.
-	
-	echo Html::activeInput('text', $model, 'name',
-		[
-			'maxlength' => TwbsMaxlength::getMaxLength($model, 'name',50),
-			'class' => 'form-control'
-		]
-	);
-	
-	// and now insert the js plugin
-	
-	TwbsMaxlength::widget([
-		'selector' => '#'.Html::getInputId($model,'name'),
-		'pluginOptions' => [
-			'threshold' => 30,
-			'placement' => 'top'
-		]
-	]);	
+	echo $form->field($model, 'subject')->widget(TwbsMaxlength::className());
+
+	ActiveForm::end();
 ?>
 ```
 
+The TwbsMaxlength widget requires the **maxlength** attribute to be defined in the input control. No such attribute
+is defined in the above example, so the Widget is going to explore **Validation rules** associated to the *subject* attribute
+in the *ContactForm* model definition. It will look for  [StringValidator](http://www.yiiframework.com/doc-2.0/yii-validators-stringvalidator.html) and try to extract its *maxlength* value.
 
-**Using yii\helpers\HTML::activeInput**
-
-Another way of working with form and model is to use the *ActiveForm* Widget. Yes, in this case *TwbsMaxlength* is still your friend !
-By using **TwbsMaxlength::apply**, you add the *maxlength* HTML attribute to the field, based on the validation rule that
-is defined for the model's attribute.
+So for this example to work, **we must define a string validation rule for attribute subject**
 
 ```php
-<?php
-	use raoul2000\widget\twbsmaxlength\TwbsMaxlength;
-	use yii\helpers\Html;
-	use yii\widgets\ActiveForm;
-?>
-    <div class="row">
-        <div class="col-lg-5">
-            <?php $form = ActiveForm::begin(['id' => 'contact-form']); ?>
-                <?= $form->field($model, 'subject') ?>
-                
-                <?= TwbsMaxlength::apply(
-						$form->field($model, 'body'),
-						['threshold' => 20 ],
-						false
-					)->textarea(['rows' => 6]) 
-				?>
-				
-                <div class="form-group">
-                    <?= Html::submitButton('Submit', ['class' => 'btn btn-primary', 'name' => 'contact-button']) ?>
-                </div>
-            <?php ActiveForm::end(); ?>
-        </div>
-    </div>
-
-?>
+class ContactForm extends Model
+{
+    public $subject;
+    
+    /**
+     * @return array the validation rules.
+     */
+    public function rules()
+    {
+        return [
+        	['subject','string', 'length'=> [4,10]],
+        ];
+    }
+    // ....
 ```
 
-When *TwbsMaxlength* needs to find the value to use for *maxlength*, it searches for the first [StringValidator](http://www.yiiframework.com/doc-2.0/yii-validators-stringvalidator.html) related to the 
-model's attribute and use the *max* value.
+Of course another option would have been to explicitly set the *maxlength* attribute value directly in the field definition.
 
+Plugin Options
+-----
+The [Bootstrap Maxlength](https://github.com/mimo84/bootstrap-maxlength/blob/master/README.md) accepts several options to custoomize its behavior. These options can be initialized in the **clientOptions** array, when configuring the widget.
+
+```php
+$form2->field($model, 'body')->widget(TwbsMaxlength::className(), [
+	'clientOptions' => [
+    	'threshold' => 10,
+		'preText' => 'You have ',
+		'separator' => ' of ',
+		'postText' => ' chars remaining.',
+		'warningClass' => "label label-success",
+		'limitReachedClass' => "label label-danger"
+	]
+]);
+```                        
+
+Widget Options
+-----
+
+## textarea
+To produce a *textarea* element instead of the classical test input (produced by default), use the *type* option when
+configuring your widget.
+
+```php
+<?php 
+	$form = ActiveForm::begin(['id' => 'contact-form']); 
+
+	echo $form->field($model, 'subject')->widget(TwbsMaxlength::className(),[
+    	'type' => TwbsMaxlength::INPUT_TEXTAREA
+    ]);
+
+	ActiveForm::end();
+?>
+```
+## Threshold
+Use the **thresholdPolicy** option to dynamically calculate the value of the **threshold**. The Threshold is a numeric
+value representing the number of characters left before reaching the **maxlength** limitation. when the threshold is
+defined, the alert is displayed to the user.
+
+In the example below, the alert will be displayed after 3/4 of the total number of character allowed is reached. So for instance
+if the "subject' validation rule defined a maximum length to be 40, the alert will show up when 30 characters are entered.
+
+```php
+<?php 
+	$form = ActiveForm::begin(['id' => 'contact-form']); 
+
+	echo $form->field($model, 'subject')->widget(TwbsMaxlength::className(),[
+    	'thresholdPolicy' => TwbsMaxlength::TRESHOLD_THREE_QUARTERS,
+    ]);
+
+	ActiveForm::end();
+?>
+```
 
 For more information on the plugin options, please refer to [bootstrap-maxlength github page](https://github.com/mimo84/bootstrap-maxlength/).
 
