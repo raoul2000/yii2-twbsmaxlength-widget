@@ -4,7 +4,7 @@ namespace raoul2000\widget\twbsmaxlength;
 use yii\web\AssetBundle;
 
 /**
- * @author Raoul <raoul.boulard@gmail.com>
+ * @author Raoul
  */
 class TwbsMaxlengthAsset extends AssetBundle
 {

@@ -16,12 +16,15 @@ use yii\widgets\InputWidget;
  */
 class TwbsMaxlength extends InputWidget
 {
-	const INPUT_TEXT = 'text';
+	const INPUT_TEXT     = 'text';
 	const INPUT_TEXTAREA = 'textarea';
 	
-	const TRESHOLD_HALF = 1;
-	const TRESHOLD_TWO_THIRD = 2;
-	const TRESHOLD_THREE_QUARTERS = 3;
+	/**
+	 * Threshold policies
+	 */
+	const THRESHOLD_HALF = 1;
+	const THRESHOLD_TWO_THIRD = 2;
+	const THRESHOLD_THREE_QUARTERS = 3;
 	
 	/**
 	 * @var string JQuery selector to attach the maxlength widget to. If this option is set, it is used 
@@ -43,7 +46,7 @@ class TwbsMaxlength extends InputWidget
 	 * part of the max length value. This settings is used only if no treshold is set in the widget options. By default
 	 * the threshold is set to 2/3 of the maxlength value.
 	 */
-	public $thresholdPolicy = self::TRESHOLD_TWO_THIRD;
+	public $thresholdPolicy = self::THRESHOLD_TWO_THIRD;
 	
 	/**
 	 * 
@@ -108,14 +111,14 @@ class TwbsMaxlength extends InputWidget
 	protected function initThreshold()
 	{
 		switch ($this->thresholdPolicy) {
-			case self::TRESHOLD_HALF :
-				$this->clientOptions['threshold'] = ceil($this->options['maxlength'] / 2);
+			case self::THRESHOLD_TWO_THIRD :
+				$this->clientOptions['threshold'] = ceil($this->options['maxlength'] / 3);
 				break;
-			case self::TRESHOLD_THREE_QUARTERS :
+			case self::THRESHOLD_THREE_QUARTERS :
 				$this->clientOptions['threshold'] =  ceil($this->options['maxlength'] / 4);
 				break;
 			default:
-				$this->clientOptions['threshold'] = $this->options['maxlength'] - (ceil($this->options['maxlength'] / 3) * 2);
+				$this->clientOptions['threshold'] = ceil($this->options['maxlength'] / 2);
 				break;
 		}
 	}
@@ -143,7 +146,11 @@ class TwbsMaxlength extends InputWidget
 	 * method adds this attribute if it is not already defined into the HTML attributes of an ActiveField. The
 	 * value is retrieved from the StringValidator settings that is attached to the model attribute.
 	 * Note that if maxlength can't be defined, the plugin is not registred for the view.
-	 *
+	 * 
+	 * Note that this method is deprecated and should be replaced by ActiveField widget initialization
+	 * as explained in the README file.
+	 * 
+	 * @deprecated
 	 * @param yii\widgets\ActiveField $field
 	 * @param array $clientOptions Bootstrap maxlength plugin options
 	 * @param boolean $render when true, the $field is output
