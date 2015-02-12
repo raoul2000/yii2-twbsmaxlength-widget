@@ -1,3 +1,5 @@
+**this is a work in progress : use it at tour own risk**
+
 yii2-twbsmaxlength-widget
 ==========================
 The TwbsMaxlength widget is a wrapper for the [Bootstrap Maxlength plugin](http://mimo84.github.io/bootstrap-maxlength/), 
