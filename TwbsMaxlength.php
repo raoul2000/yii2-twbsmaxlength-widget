@@ -150,7 +150,9 @@ class TwbsMaxlength extends InputWidget
 	 * Note that this method is deprecated and should be replaced by ActiveField widget initialization
 	 * as explained in the README file.
 	 * 
-	 * @deprecated
+	 * @deprecated since Yii2 2.0.3 it is possible to set the maxlength HTML attribute of a text input
+	 * [Read more](http://www.yiiframework.com/doc-2.0/yii-widgets-activefield.html#textInput%28%29-detail)
+	 * 
 	 * @param yii\widgets\ActiveField $field
 	 * @param array $clientOptions Bootstrap maxlength plugin options
 	 * @param boolean $render when true, the $field is output
