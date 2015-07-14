@@ -55,7 +55,7 @@ Most of the time, a text or textarea input control is produced by an ActiveForm 
 	$form = ActiveForm::begin(); 
 
 	echo $form->field($model, 'name')
-		->textInput(['maxlenngth' => true])		
+		->textInput(['maxlength' => true])		
 		->widget(TwbsMaxlength::className());
 
 	ActiveForm::end();
@@ -74,7 +74,7 @@ To use it with a *textarea*, simply add the `type`configuration parameter with v
 	$form = ActiveForm::begin(); 
 
 	echo $form->field($model, 'name')
-		->textInput(['maxlenngth' => true])		
+		->textInput(['maxlength' => true])		
 		->widget(TwbsMaxlength::className(),['type' => TwbsMaxlength::INPUT_TEXTAREA]);
 
 	ActiveForm::end();
