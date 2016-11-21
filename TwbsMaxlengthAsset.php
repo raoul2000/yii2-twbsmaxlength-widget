@@ -8,7 +8,7 @@ use yii\web\AssetBundle;
  */
 class TwbsMaxlengthAsset extends AssetBundle
 {
-	public $sourcePath = '@bower/bootstrap-maxlength';
+	public $sourcePath = '@bower/bootstrap-maxlength/src';
 	public $depends = [
 		'yii\web\JqueryAsset'
 	];
