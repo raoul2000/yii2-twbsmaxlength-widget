@@ -1,5 +1,8 @@
+# version 1.1.1
+- fix [#5](https://github.com/raoul2000/yii2-twbsmaxlength-widget/issues/5)
+
 # version 1.1.0
-- update README 
+- update README
 - remove assets and use composer to install bower-asset/bootstrap-maxlength
 
 # version 1.0.0
