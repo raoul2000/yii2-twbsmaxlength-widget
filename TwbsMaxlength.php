@@ -27,6 +27,11 @@ class TwbsMaxlength extends InputWidget
 	const THRESHOLD_THREE_QUARTERS = 3;
 	
 	/**
+	* @var boolean use minified version of bootstrap-maxlength.js
+	*/
+	public $minifyJs = false;
+	
+	/**
 	 * @var string JQuery selector to attach the maxlength widget to. If this option is set, it is used 
 	 * in priority. It must be empty when the widget is used with ActiveField.
 	 */
@@ -128,6 +133,7 @@ class TwbsMaxlength extends InputWidget
 	public function registerClientScript()
 	{
 		$view = $this->getView();
+		TwbsMaxlengthAsset::$minifyJs = $this->minifyJs;
 		TwbsMaxlengthAsset::register($view);
 
 		$options = empty($this->clientOptions) ? "{}" : Json::encode($this->clientOptions);
