@@ -12,13 +12,18 @@ class TwbsMaxlengthAsset extends AssetBundle
 	public $depends = [
 		'yii\web\JqueryAsset'
 	];
+	
+	/**
+	* @var boolean use minified version of bootstrap-maxlength.js
+	*/
+	public static $minifyJs = false;
 	/**
 	 * @see \yii\web\AssetBundle::init()
 	 */
 	public function init()
 	{
 		$this->js = [
-			'bootstrap-maxlength'.( YII_ENV_DEV ? '.js' : '.min.js' )
+			'bootstrap-maxlength'.( $minifyJs ? '.min.js' : '.js' )
 		];
 		return parent::init();
 	}
